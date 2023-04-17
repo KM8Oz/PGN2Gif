@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom"
-import Axios  from "axios"
+import Axios from "axios"
 const { window } = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`);
 interface ExampleGame {
     name: string;
@@ -11,6 +11,20 @@ export const exampleGames: ExampleGame[] = [
     { name: "Deep Blue vs. Garry Kasparov", pgn: "1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4 Nd7 5.Ng5 Ngf6 6.Bd3 e6 7.N1f3 h6 8.Nxe6 Qe7 9.0-0 fxe6 10.Bg6+ Kd8 11.Bf4 b5 12.a4 Bb7 13.Re1 Nd5 14.Bg3 Kc8 15.axb5 cxb5 16.Qd3 Bc6 17.Bf5 exf5 18.Rxe7 Bxe7 19.c4 1–0" },
     { name: "Game of the Century", pgn: "1. Nf3 Nf6 2. c4 g6 3. Nc3 Bg7 4. d4 O-O 5. Bf4 d5 6. Qb3 dxc4 7. Qxc4 c6 8. e4 Nbd7 9. Rd1 Nb6 10. Qc5 Bg4 11. Bg5  Na4! 12. Qa3 Nxc3 13. bxc3 Nxe4 14. Bxe7 Qb6 15. Bc4 Nxc3 16. Bc5 Rfe8+ 17. Kf1 Be6!! 18. Bxb6 Bxc4+ 19. Kg1 Ne2+ 20. Kf1 Nxd4+ 21. Kg1 Ne2+ 22. Kf1 Nc3+ 23. Kg1 axb6 24. Qb4 Ra4 25. Qxb6 Nxd1 26. h3 Rxa2 27. Kh2 Nxf2 28. Re1 Rxe1 29. Qd8+ Bf8 30. Nxe1 Bd5 31. Nf3 Ne4 32. Qb8 b5 33. h4 h5 34. Ne5 Kg7 35. Kg1 Bc5+ 36. Kf1 Ng3+ 37. Ke1 Bb4+ 38. Kd1 Bb3+ 39. Kc1 Ne2+ 40. Kb1 Nc3+ 41. Kc1 Rc2# 0-1" },
 ]
+// function blobToBase64(blob: Blob): Promise<string> {
+//     return new Promise((resolve, reject) => {
+//         const reader = new window.FileReader();
+//         reader.onload = () => {
+//             const binaryString = reader.result as ArrayBuffer;
+//             const base64String = Buffer.from(binaryString).toString("base64");
+//             resolve(base64String);
+//         };
+//         reader.onerror = () => {
+//             reject(new Error("Failed to read Blob as binary data"));
+//         };
+//         reader.readAsArrayBuffer(blob);
+//     });
+// }
 function cleanMoves(moves: string): string {
     moves = moves.replace(new RegExp("\n", 'g'), " ");
     moves = moves.replace(new RegExp("\\d+\\.\\.\\.", 'g'), "");
@@ -93,7 +107,7 @@ const ROWS = [new Uint8Array(BOARD_SIZE * SQUARE_SIZE), new Uint8Array(BOARD_SIZ
 let NUM_COLORS = 0;
 let COLOR_BITS = 0;
 
-const PIECE_URL = "./piece_set.dat";
+const PIECE_URL = "https://github.com/KM8Oz/PGN2Gif/raw/6a484c2fe32da177df283f8b58205069599869c1/src/piece_set.dat";
 let PIECE_DATA: Uint8Array = null as any;
 
 function malloc(buffer: ResizableBuffer, toAdd: number) {
@@ -169,8 +183,10 @@ export class ChessGif {
         for (let i = 0; i < 8 * SQUARE_SIZE; i++) ROWS[1 - (i & 1)].set(ones, i * SQUARE_SIZE);
 
         let body: ArrayBuffer = null as any;
-        const resp = (await Axios.get(PIECE_URL)).data;
-        body = await resp.arrayBuffer();
+        body = (await Axios.get(PIECE_URL, {
+            responseType: "arraybuffer"
+        })).data;
+        // body = await resp.arrayBuffer();
 
         PIECE_DATA = new Uint8Array(body);
         const paletteSize = PIECE_DATA[0];
@@ -202,8 +218,10 @@ export class ChessGif {
         return this.asArrayGif();
     }
 
-    public asBase64Gif(): string {
-        return window.URL.createObjectURL(new Blob([this.asArrayGif()], { type: 'image/gif' }));
+    public asBase64Gif(): Blob {
+        // return window.URL.createObjectURL(new Blob([this.asArrayGif()], { type: 'image/gif' }));
+        // return await blobToBase64(new Blob([this.asArrayGif()], { type: 'image/gif' }));
+        return new Blob([this.asArrayGif()], { type: 'image/gif' });
     }
 
     public async render(flipped = false) {
