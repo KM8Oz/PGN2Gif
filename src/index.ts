@@ -72,7 +72,7 @@ function cleanMoves(moves: string): string {
 
 // Return true if move is like "1-0", or "0–1", or 1/2-1/2
 function isGameResultMove(move: string) {
-    return move == "*" || ((move.indexOf("-") !== -1 || move.indexOf("–") !== -1) && move.indexOf("1") !== -1)
+    return move === "*" || ((move.indexOf("-") !== -1 || move.indexOf("–") !== -1) && move.indexOf("1") !== -1)
 }
 
 export const lichessRegex = /^\s*(http:\/\/|https:\/\/)?(www\.)?lichess\.org\/(\w{8})\w*\/*\s*$/
@@ -297,7 +297,7 @@ export class ChessGif {
                 }
 
                 const xAdd = 1 << (x - xMin);
-                if (selectedOffsets[y] == null) {
+                if (selectedOffsets[y] === null) {
                     selectedOffsets[y] = xAdd;
                 } else {
                     selectedOffsets[y] += xAdd;
@@ -437,7 +437,7 @@ export class ChessGif {
                         candidates.push([r2, f2]);
                         break;
                     }
-                    if (this.board[r2][f2] != ' ') break;
+                    if (this.board[r2][f2] !== ' ') break;
                 }
             }
         } else if (move.length === 5) {
@@ -446,15 +446,15 @@ export class ChessGif {
             candidates = [[8 - parseInt(move[2]), FILES[move[1]]]];
         } else return; // unknown move
 
-        if (search == null) search = piece;
+        if (search === null) search = piece;
 
         for (const c of candidates) {
             const y = c[0];
             const x = c[1];
 
             if (y < 8 && y >= 0 && x < 8 && x >= 0 && this.board[y][x] === search) {
-                if (rankConstraint != null && rankConstraint != y) continue;
-                if (fileConstraint != null && fileConstraint != x) continue;
+                if (rankConstraint !== null && rankConstraint !== y) continue;
+                if (fileConstraint !== null && fileConstraint !== x) continue;
 
                 this.board[target[0]][target[1]] = piece;
                 this.board[y][x] = ' ';
