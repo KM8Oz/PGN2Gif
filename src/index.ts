@@ -1,11 +1,34 @@
-import { JSDOM } from "jsdom"
 import Axios from "axios"
-const { window } = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`);
 interface ExampleGame {
     name: string;
     pgn: string;
 }
-
+async function fetchFileAsArrayBuffer(url: string | URL): Promise<ArrayBuffer> {
+    if (typeof window === "undefined") {
+        // Node.js environment
+        const res = await Axios.get(url as any, {
+            responseType: "arraybuffer"
+        });
+        return res.data as ArrayBuffer;
+    } else {
+        // Browser environment
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.responseType = "arraybuffer";
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resolve(xhr.response);
+                } else {
+                    reject(new Error(`Request failed with status ${xhr.status}`));
+                }
+            };
+            xhr.onerror = () => reject(new Error("Request failed"));
+            xhr.send();
+        });
+    }
+}
+// const isDOM = (el: any) => el instanceof Element
 export const exampleGames: ExampleGame[] = [
     { name: "Opera House Game", pgn: "1. e4 e5 2. Nf3 d6 3. d4 Bg4?! 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6? 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5? 10. Nxb5! cxb5 11. Bxb5+ Nbd7 12. 0-0-0 Rd8 13. Rxd7 Rxd7 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+! Nxb8 17. Rd8#" },
     { name: "Deep Blue vs. Garry Kasparov", pgn: "1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4 Nd7 5.Ng5 Ngf6 6.Bd3 e6 7.N1f3 h6 8.Nxe6 Qe7 9.0-0 fxe6 10.Bg6+ Kd8 11.Bf4 b5 12.a4 Bb7 13.Re1 Nd5 14.Bg3 Kc8 15.axb5 cxb5 16.Qd3 Bc6 17.Bf5 exf5 18.Rxe7 Bxe7 19.c4 1–0" },
@@ -183,9 +206,7 @@ export class ChessGif {
         for (let i = 0; i < 8 * SQUARE_SIZE; i++) ROWS[1 - (i & 1)].set(ones, i * SQUARE_SIZE);
 
         let body: ArrayBuffer = null as any;
-        body = (await Axios.get(PIECE_URL, {
-            responseType: "arraybuffer"
-        })).data;
+        body = await fetchFileAsArrayBuffer(PIECE_URL);
         // body = await resp.arrayBuffer();
 
         PIECE_DATA = new Uint8Array(body);

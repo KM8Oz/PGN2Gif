@@ -1,3 +1,4 @@
+
 import { ChessGif, exampleGames, parseMoves } from './index';
 import { writeFileSync } from "fs"
 let chessGif = new ChessGif()
@@ -23,3 +24,5 @@ test(exampleGames[1].name, async () => {
     writeFileSync("./test1.gif", Buffer.from(data));
     expect(url).toBeDefined();
 });
+
+export default null
